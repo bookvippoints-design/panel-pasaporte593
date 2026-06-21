@@ -63,6 +63,7 @@ export default function Perfil({ business, onUpdate }) {
     { name: 'phone', label: 'Teléfono', type: 'text' },
     { name: 'whatsapp', label: 'WhatsApp (número con código de país)', type: 'text', placeholder: '593999999999' },
     { name: 'instagram', label: 'Instagram (usuario sin @)', type: 'text' },
+{ name: 'tiktok', label: 'TikTok (usuario sin @)', type: 'text' },
     { name: 'facebook', label: 'Facebook (URL o usuario)', type: 'text' },
 { name: 'tiktok', label: 'TikTok (usuario sin @)', type: 'text' },
     { name: 'website', label: 'Sitio web', type: 'url' },
