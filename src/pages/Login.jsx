@@ -84,7 +84,7 @@ export default function Login() {
 
           <p className="font-body text-gray-400 text-xs text-center mt-6 leading-relaxed">
             ¿No tienes acceso? Contáctanos por{' '}
-            <a href="https://wa.me/593999999999" className="text-brand-emerald hover:underline">
+            <a href="https://wa.me/593981350463" className="text-brand-emerald hover:underline">
               WhatsApp
             </a>
           </p>
