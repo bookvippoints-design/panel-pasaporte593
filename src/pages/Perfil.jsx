@@ -41,6 +41,7 @@ export default function Perfil({ business, onUpdate }) {
         whatsapp: form.whatsapp,
         instagram: form.instagram,
         facebook: form.facebook,
+        tiktok: form.tiktok,
         website: form.website,
         lat: form.lat ? parseFloat(form.lat) : null,
         lng: form.lng ? parseFloat(form.lng) : null,
