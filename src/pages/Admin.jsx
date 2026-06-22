@@ -72,7 +72,7 @@ export default function Admin() {
 
     // 4. Enviar correo de bienvenida con PDFs
     try {
-      await fetch('/.netlify/functions/send-welcome', {
+      const res = await fetch('/.netlify/functions/send-welcome', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -82,6 +82,8 @@ export default function Admin() {
           password: password,
         }),
       })
+      const data = await res.json()
+      console.log('Email response:', res.status, data)
     } catch (e) {
       console.error('Error enviando correo:', e)
     }
