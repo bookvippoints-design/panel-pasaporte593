@@ -6,6 +6,8 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [resetMode, setResetMode] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   async function handleLogin(e) {
     e.preventDefault()
@@ -13,6 +15,18 @@ export default function Login() {
     setError('')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) setError('Credenciales incorrectas. Verifica tu email y contraseña.')
+    setLoading(false)
+  }
+
+  async function handleReset(e) {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://panel-pasaporte593.netlify.app/login'
+    })
+    if (error) setError('Error enviando el correo. Verifica el email ingresado.')
+    else setResetSent(true)
     setLoading(false)
   }
 
@@ -32,62 +46,111 @@ export default function Login() {
           <p className="font-body text-white/60 text-sm">Panel de establecimiento</p>
         </div>
 
-        {/* Card */}
         <div className="bg-white rounded-3xl p-8 shadow-xl">
-          <h1 className="font-heading font-bold text-brand-navy text-xl mb-6 text-center">
-            Inicia sesión
-          </h1>
+          {!resetMode ? (
+            <>
+              <h1 className="font-heading font-bold text-brand-navy text-xl mb-6 text-center">
+                Inicia sesión
+              </h1>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="font-body text-sm font-medium text-gray-700 block mb-1.5">Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="tu@email.com"
+                    required
+                    className="w-full px-4 py-3 font-body text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-brand-orange"
+                  />
+                </div>
+                <div>
+                  <label className="font-body text-sm font-medium text-gray-700 block mb-1.5">Contraseña</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full px-4 py-3 font-body text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-brand-orange"
+                  />
+                </div>
+                {error && <div className="bg-red-50 text-red-600 font-body text-sm px-4 py-3 rounded-xl">{error}</div>}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-brand-orange text-white font-heading font-bold text-sm px-4 py-3.5 rounded-xl hover:bg-orange-500 transition-colors disabled:opacity-60"
+                >
+                  {loading ? 'Iniciando sesión...' : 'Entrar al panel'}
+                </button>
+              </form>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="font-body text-sm font-medium text-gray-700 block mb-1.5">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="tu@email.com"
-                required
-                className="w-full px-4 py-3 font-body text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-brand-orange"
-              />
-            </div>
+              <button
+                onClick={() => { setResetMode(true); setError('') }}
+                className="w-full font-body text-xs text-brand-navy/60 hover:text-brand-orange mt-4 text-center transition-colors"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
 
-            <div>
-              <label className="font-body text-sm font-medium text-gray-700 block mb-1.5">
-                Contraseña
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="w-full px-4 py-3 font-body text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-brand-orange"
-              />
-            </div>
-
-            {error && (
-              <div className="bg-red-50 text-red-600 font-body text-sm px-4 py-3 rounded-xl">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-brand-orange text-white font-heading font-bold text-sm px-4 py-3.5 rounded-xl hover:bg-orange-500 transition-colors disabled:opacity-60"
-            >
-              {loading ? 'Iniciando sesión...' : 'Entrar al panel'}
-            </button>
-          </form>
-
-          <p className="font-body text-gray-400 text-xs text-center mt-6 leading-relaxed">
-            ¿No tienes acceso? Contáctanos por{' '}
-            <a href="https://wa.me/593981350463" className="text-brand-emerald hover:underline">
-              WhatsApp
-            </a>
-          </p>
+              <p className="font-body text-gray-400 text-xs text-center mt-4 leading-relaxed">
+                ¿No tienes acceso? Contáctanos por{' '}
+                <a href="https://wa.me/593981350463" className="text-brand-emerald hover:underline">WhatsApp</a>
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="font-heading font-bold text-brand-navy text-xl mb-2 text-center">
+                Recuperar contraseña
+              </h1>
+              {!resetSent ? (
+                <>
+                  <p className="font-body text-gray-500 text-sm text-center mb-6">
+                    Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
+                  </p>
+                  <form onSubmit={handleReset} className="space-y-4">
+                    <div>
+                      <label className="font-body text-sm font-medium text-gray-700 block mb-1.5">Email</label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        placeholder="tu@email.com"
+                        required
+                        className="w-full px-4 py-3 font-body text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-brand-orange"
+                      />
+                    </div>
+                    {error && <div className="bg-red-50 text-red-600 font-body text-sm px-4 py-3 rounded-xl">{error}</div>}
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-brand-orange text-white font-heading font-bold text-sm px-4 py-3.5 rounded-xl hover:bg-orange-500 transition-colors disabled:opacity-60"
+                    >
+                      {loading ? 'Enviando...' : 'Enviar enlace'}
+                    </button>
+                  </form>
+                  <button
+                    onClick={() => { setResetMode(false); setError('') }}
+                    className="w-full font-body text-xs text-gray-400 hover:text-brand-navy mt-4 text-center transition-colors"
+                  >
+                    ← Volver al inicio de sesión
+                  </button>
+                </>
+              ) : (
+                <div className="text-center">
+                  <div className="text-4xl mb-3">📧</div>
+                  <p className="font-body text-gray-600 text-sm leading-relaxed mb-6">
+                    Te enviamos un enlace a <strong>{email}</strong>. Revisa tu bandeja de entrada y sigue las instrucciones.
+                  </p>
+                  <button
+                    onClick={() => { setResetMode(false); setResetSent(false); setError('') }}
+                    className="font-body text-sm text-brand-orange hover:underline"
+                  >
+                    ← Volver al inicio de sesión
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

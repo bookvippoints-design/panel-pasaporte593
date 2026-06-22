@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
 import Login from './pages/Login'
+import Admin from './pages/Admin'
 import Dashboard from './pages/Dashboard'
 import Perfil from './pages/Perfil'
 import Fotos from './pages/Fotos'
@@ -63,6 +64,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={session ? <Navigate to="/panel" replace /> : <Login />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="/" element={<Navigate to="/panel" replace />} />
         <Route path="/panel" element={
           <ProtectedRoute session={session}>
