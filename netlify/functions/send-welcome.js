@@ -131,7 +131,7 @@ exports.handler = async (event) => {
   `
 
   const payload = JSON.stringify({
-    from: 'Pasaporte593 <onboarding@resend.dev>',
+    from: 'Pasaporte593 <admin@alfonsohidalgo.com>',
     to: [email],
     subject: `Bienvenido a Pasaporte593 — Tus credenciales de acceso`,
     html,
