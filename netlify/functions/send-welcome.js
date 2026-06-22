@@ -1,4 +1,5 @@
 const https = require('https')
+const nodemailer = require('nodemailer')
 
 function fetchPdfAsBase64(url) {
   return new Promise((resolve, reject) => {
@@ -17,17 +18,26 @@ exports.handler = async (event) => {
   }
 
   const { name, responsible, email, password } = JSON.parse(event.body)
-  const BREVO_KEY = process.env.BREVO_API_KEY
   const BASE_URL = 'https://panel-pasaporte593.netlify.app'
 
-  let terminosPdf = ''
-  let manualPdf = ''
+  let terminosBuffer = null
+  let manualBuffer = null
   try {
-    terminosPdf = await fetchPdfAsBase64(`${BASE_URL}/terminos_condiciones.pdf`)
-    manualPdf = await fetchPdfAsBase64(`${BASE_URL}/manual_panel.pdf`)
+    terminosBuffer = Buffer.from(await fetchPdfAsBase64(`${BASE_URL}/terminos_condiciones.pdf`), 'base64')
+    manualBuffer = Buffer.from(await fetchPdfAsBase64(`${BASE_URL}/manual_panel.pdf`), 'base64')
   } catch (e) {
     console.error('Error descargando PDFs:', e)
   }
+
+  const transporter = nodemailer.createTransport({
+    host: 'mail.gmx.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: 'activaciones@gmx.com',
+      pass: process.env.GMX_PASSWORD,
+    },
+  })
 
   const html = `
 <!DOCTYPE html>
@@ -87,41 +97,21 @@ exports.handler = async (event) => {
 </body>
 </html>`
 
-  const payload = JSON.stringify({
-    sender: { name: 'Pasaporte593', email: 'activaciones@gmx.com' },
-    to: [{ email, name: responsible }],
-    subject: `Bienvenido a Pasaporte593 — Tus credenciales de acceso`,
-    htmlContent: html,
-    attachment: [
-      ...(terminosPdf ? [{ name: 'Terminos_y_Condiciones_Pasaporte593.pdf', content: terminosPdf }] : []),
-      ...(manualPdf ? [{ name: 'Manual_Panel_Pasaporte593.pdf', content: manualPdf }] : []),
-    ],
-  })
-
-  const result = await new Promise((resolve, reject) => {
-    const req = https.request({
-      hostname: 'api.brevo.com',
-      path: '/v3/smtp/email',
-      method: 'POST',
-      headers: {
-        'api-key': BREVO_KEY,
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(payload),
-      },
-    }, (res) => {
-      let data = ''
-      res.on('data', chunk => data += chunk)
-      res.on('end', () => resolve({ status: res.statusCode, body: data }))
+  try {
+    await transporter.sendMail({
+      from: '"Pasaporte593" <activaciones@gmx.com>',
+      to: email,
+      subject: 'Bienvenido a Pasaporte593 — Tus credenciales de acceso',
+      html,
+      attachments: [
+        ...(terminosBuffer ? [{ filename: 'Terminos_y_Condiciones_Pasaporte593.pdf', content: terminosBuffer }] : []),
+        ...(manualBuffer ? [{ filename: 'Manual_Panel_Pasaporte593.pdf', content: manualBuffer }] : []),
+      ],
     })
-    req.on('error', reject)
-    req.write(payload)
-    req.end()
-  })
-
-  console.log('Brevo response:', result)
-
-  return {
-    statusCode: result.status === 200 || result.status === 201 ? 200 : 500,
-    body: result.body,
+    console.log('Email enviado OK a', email)
+    return { statusCode: 200, body: JSON.stringify({ ok: true }) }
+  } catch (err) {
+    console.error('Error enviando email:', err)
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) }
   }
 }
