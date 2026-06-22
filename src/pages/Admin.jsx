@@ -70,6 +70,22 @@ export default function Admin() {
       email: form.email,
     })
 
+    // 4. Enviar correo de bienvenida con PDFs
+    try {
+      await fetch('/.netlify/functions/send-welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          responsible: form.responsible,
+          email: form.email,
+          password: password,
+        }),
+      })
+    } catch (e) {
+      console.error('Error enviando correo:', e)
+    }
+
     setSuccess({ ...form, password, slug })
     setForm({ name: '', responsible: '', email: '' })
     setPassword(generatePassword())
